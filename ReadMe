@@ -1,1 +1,167 @@
-Run ./setup.sh after cloning
+# 🪨 Supervisório ESP32 + MODBUS (Qt + Python)
+
+Projeto para disciplina de periféricos.
+Interface gráfica em **PyQt5**, comunicação serial com **ESP32** e MODBUS via **RS485**.
+
+---
+
+## ⚙️ REQUISITOS
+
+* Linux (Debian recomendado)
+* Python **3.9.7** (IMPORTANTE)
+* Git
+* Make
+
+---
+
+## 🚀 INSTALAÇÃO (AUTOMÁTICA)
+
+Clone o repositório:
+
+```
+git clone <repo>
+cd <repo>
+```
+
+Execute:
+
+```
+make setup
+```
+
+Isso vai:
+
+* instalar dependências do sistema
+* instalar pyenv
+* instalar Python 3.9.7
+* criar ambiente virtual (venv)
+* instalar PyQt5 e pyserial
+
+---
+
+## ▶️ EXECUTAR
+
+### Com interface gráfica (requer display)
+
+```
+make run
+```
+
+---
+
+### Sem interface (servidor/headless)
+
+```
+make run-headless
+```
+
+---
+
+## 🧪 USANDO NO VSCODE (SSH)
+
+1. Conectar via SSH no Debian
+2. Abrir pasta do projeto
+3. Rodar no terminal:
+
+```
+make setup
+make run
+```
+
+---
+
+## 📁 ESTRUTURA
+
+```
+.
+├── esp32_modbus.py     # código principal
+├── esp32_modbus.ui     # interface QtDesigner
+├── Makefile            # automação total
+├── requirements.txt    # dependências python
+├── venv/               # ambiente virtual (ignorado no git)
+└── README.md
+```
+
+---
+
+## 🔌 FUNCIONALIDADES
+
+* Comunicação serial com ESP32
+* Configuração de baudrate
+* Leitura de temperatura
+* Leitura de umidade
+* Leitura combinada (temp + umidade)
+* Envio de comando customizado (com CRC automático)
+* Interface gráfica com widgets:
+
+  * LCD (temperatura)
+  * ProgressBar/Scroll (umidade)
+
+---
+
+## ⚠️ PROBLEMAS COMUNS
+
+### PyQt5 erro "xcb"
+
+Instalar libs:
+
+```
+sudo apt install libxcb-xinerama0 libxkbcommon-x11-0 libxcb-cursor0
+```
+
+---
+
+### Rodando em servidor sem GUI
+
+Use:
+
+```
+make run-headless
+```
+
+Ou conecte com:
+
+```
+ssh -X user@host
+```
+
+---
+
+### Python errado
+
+Verifique:
+
+```
+python --version
+```
+
+Deve ser **3.9.7**
+
+---
+
+## 🧠 OBSERVAÇÕES
+
+* NÃO subir a pasta `venv/` no git
+* Usar `.gitignore`
+* ESP32 deve responder via serial (ex: `T:25.3`)
+
+---
+
+## 👥 AUTORES
+
+* Nome 1
+* Nome 2
+* Nome 3
+
+---
+
+## 🪨 CAVEMAN NOTE
+
+Se quebrar... rodar:
+
+```
+make clean
+make setup
+```
+
+Fim.
