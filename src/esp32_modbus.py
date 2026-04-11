@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5 import uic
 
 app = QtWidgets.QApplication([])
-window = uic.loadUi("esp32_modbus.ui")
+window = uic.loadUi("src/esp32_modbus.ui")
 
 def start_com():
     window.progressbar_serial_com.setValue(100)
