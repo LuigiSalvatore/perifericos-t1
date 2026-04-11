@@ -2,6 +2,7 @@
 
 PYTHON_VERSION=3.9.7
 VENV=venv
+SRC=src
 
 # ===== DEFAULT =====
 
@@ -47,12 +48,12 @@ setup: deps pyenv python venv install
 # ===== RUN APP =====
 
 run:
-	. $(VENV)/bin/activate && python esp32_modbus.py
+	. $(VENV)/bin/activate && python $(SRC)/esp32_modbus.py
 
 # ===== HEADLESS RUN =====
 
 run-headless:
-	. $(VENV)/bin/activate && QT_QPA_PLATFORM=offscreen python esp32_modbus.py
+	. $(VENV)/bin/activate && QT_QPA_PLATFORM=offscreen python $(SRC)/esp32_modbus.py
 
 # ===== CLEAN =====
 
