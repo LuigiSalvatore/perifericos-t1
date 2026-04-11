@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "creating venv..."
-python -m venv venv
+python3.9 -m venv venv
 
 echo "activating..."
 source venv/bin/activate
