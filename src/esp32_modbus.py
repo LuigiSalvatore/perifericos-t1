@@ -186,9 +186,10 @@ def custom_command():
         
         if response:
             # Display response as hex
-            response_hex = response.hex(' ').upper()
+            response_hex = ' '.join(f'{b:02X}' for b in response)
             if DEBUG:
-                print(f"Response: {response_hex}")
+                print(f"Response (hex): {response_hex}")
+                print(f"Response (raw): {response}")
             window.label_com_error4.setText(f"Response: {response_hex}")
         else:
             window.label_com_error4.setText("No response")

@@ -308,17 +308,8 @@ void app_main(void)
                     {
                         read_len = read_data(read_buffer, 9);
 
-#ifdef DEBUG
-                        uart_write_bytes(UART_PORT0, "Response: ", strlen("Response: "));
-#endif
-
-                        for (int i = 0; i < read_len; i++)
-                        {
-                            char byte_str[7];
-                            sprintf(byte_str, "%02X ", read_buffer[i]);
-                            uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
-                        }
-                        uart_write_bytes(UART_PORT0, "\n", 1);
+                        // Send raw binary response to Python
+                        uart_write_bytes(UART_PORT0, (char *)read_buffer, read_len);
                     }
                 }
                 else
