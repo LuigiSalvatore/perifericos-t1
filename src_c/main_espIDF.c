@@ -14,7 +14,7 @@
 #define GPIO_DRIVER_PIN 4
 #define BUF_SIZE 1024
 
-#define DEBUG 0
+// #define DEBUG 0
 
 void send_temp_com(void){
     uint8_t temp_com[8] = {0x01, 0x04, 0x00, 0x01,
@@ -149,7 +149,7 @@ void app_main(void)
 
                         char send_data[50];
                         temp = read_buffer[3] << 8 | read_buffer[4];
-                        humid = read_buffer[5] << 8 | read_buffer[6];
+                        humid = (read_buffer[5] << 8 | read_buffer[6]) / 10;
                         float temp_f = temp / 10;
                         sprintf(send_data, "TH:%.1f,%02d\n", temp_f, humid);
                         uart_write_bytes(UART_PORT0, send_data, strlen(send_data));
@@ -229,7 +229,7 @@ void app_main(void)
                         #endif
                         
                         char send_data[50];
-                        humid = read_buffer[3] << 8 | read_buffer[4];
+                        humid = (read_buffer[3] << 8 | read_buffer[4]) / 10;
                         sprintf(send_data, "H:%d\n", humid);
                         uart_write_bytes(UART_PORT0, send_data, strlen(send_data));
                     
@@ -241,6 +241,31 @@ void app_main(void)
                         sprintf(msg, "Lenght Read = %d\n", read_len);
                         uart_write_bytes(UART_PORT0, msg, strlen(msg));
                     #endif
+                }
+            }
+            else {
+                if(strlen(data) > 4){
+                    // Send Data Process
+                    uint16_t crc_generated = modbus_crc(data, strlen(data));
+                    data[len] = (crc_generated & 0x00FF);
+                    data[len+1] = ((crc_generated & 0xFF00) >> 8);
+                    data[len+2] = '\0';
+                    gpio_set_level(GPIO_DRIVER_PIN, 1);
+                    vTaskDelay(pdMS_TO_TICKS(10));
+                    uart_write_bytes(UART_PORT2, (char *)data, strlen(data));
+                    uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
+                    vTaskDelay(50 / portTICK_PERIOD_MS);
+                    
+                    // Receive Data Process (If command is for this purpose)
+                    if(data[1] == 0x03 || data[1] == 0x04){
+                        read_len = read_data(read_buffer, 9);
+                        char return_msg[100];
+                        for(int i = 0; i < read_len; i++){
+                            sprintf(return_msg, "%02x ", read_buffer[i]);
+                        }    
+                        sprintf(return_msg, "\n");
+                        uart_write_bytes(UART_PORT0, (char *)return_msg, strlen(return_msg));
+                    }
                 }
             }
         }
