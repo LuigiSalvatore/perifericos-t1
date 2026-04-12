@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/uart.h"
+#include "driver/gpio.h"
 
 #define UART_PORT0 UART_NUM_0
 #define UART_PORT2 UART_NUM_2
@@ -16,6 +17,7 @@ void send_temp_com(void){
 
     gpio_set_level(GPIO_DRIVER_PIN, 1);
     uart_write_bytes(UART_PORT2, (char *)temp_com, 8);
+    uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
 }
 
 void send_humidity_com(void){
@@ -24,6 +26,7 @@ void send_humidity_com(void){
     
     gpio_set_level(GPIO_DRIVER_PIN, 1);
     uart_write_bytes(UART_PORT2, (char *)humidity_com, 8);
+    uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
 }
 
 void send_temp_humidity_com(void){
@@ -32,6 +35,7 @@ void send_temp_humidity_com(void){
 
     gpio_set_level(GPIO_DRIVER_PIN, 1);
     uart_write_bytes(UART_PORT2, (char *)temp_humid_com, 8);
+    uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
 }
 
 int read_data(uint8_t * read_buf){
@@ -93,9 +97,17 @@ void app_main(void)
             if(strstr((char *)data, "th") != 0)
             {
                 send_temp_humidity_com();
+                vTaskDelay(50 / portTICK_PERIOD_MS);
                 read_len = read_data(read_buffer);
 
                 if(read_len == 9){
+                    for(int i = 0; i < read_len; i++){
+                        char byte_str[7];
+                        sprintf(byte_str, "%02X ", read_buffer[i]);
+                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
+                    }
+                    uart_write_bytes(UART_PORT0, "\n", 1);
+                    
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
                     crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
@@ -113,9 +125,17 @@ void app_main(void)
             else if(strstr((char *)data, "T") != 0)
             {
                 send_temp_com();
+                vTaskDelay(50 / portTICK_PERIOD_MS);
                 read_len = read_data(read_buffer);
 
                 if(read_len == 7){
+                    for(int i = 0; i < read_len; i++){
+                        char byte_str[5];
+                        sprintf(byte_str, "%02X ", read_buffer[i]);
+                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
+                    }
+                    uart_write_bytes(UART_PORT0, "\n", 1);
+
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
                     crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
@@ -132,10 +152,18 @@ void app_main(void)
             } 
             else if(strstr((char *)data, "H") != 0)
             {
-                send_humidity_com();
-                read_len = read_data(read_buffer);
+                    send_humidity_com();
+                    vTaskDelay(50 / portTICK_PERIOD_MS);
+                    read_len = read_data(read_buffer);
 
                 if(read_len == 7){
+                    for(int i = 0; i < read_len; i++){
+                        char byte_str[5];
+                        sprintf(byte_str, "%02X ", read_buffer[i]);
+                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
+                    }
+                    uart_write_bytes(UART_PORT0, "\n", 1);
+
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
                     crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
