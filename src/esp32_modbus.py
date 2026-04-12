@@ -142,9 +142,65 @@ def read_temp_humid():
     window.pushbutton_read_temp_humid.setEnabled(True)
 
 def custom_command():
+    window.pushbutton_custom.setEnabled(False)
     window.label_com_error4.setText("")
-    # TODO: Fazer verificação se é hexadecimal
-    print(f"custom command: {window.lineedit_custom_command.text()}")
+    
+    try:
+        # Get hex string from textbox (e.g., "01 04 00 01 00 01")
+        hex_string = window.lineedit_custom_command.text().strip()
+        
+        if not hex_string:
+            window.label_com_error4.setText("Enter hex values")
+            window.pushbutton_custom.setEnabled(True)
+            return
+        
+        # Parse hex string and convert to bytes
+        # Remove spaces and convert pairs of hex digits to bytes
+        hex_clean = hex_string.replace(" ", "").replace(",", "")
+        
+        if len(hex_clean) % 2 != 0:
+            window.label_com_error4.setText("Invalid hex format")
+            window.pushbutton_custom.setEnabled(True)
+            return
+        
+        # Convert hex string to bytes
+        byte_data = bytes.fromhex(hex_clean)
+        
+        if DEBUG:
+            print(f"Sending custom command: {hex_string}")
+            print(f"As bytes: {byte_data.hex(' ')}")
+        
+        # Send the raw bytes
+        ser.write(byte_data)
+        
+        # Wait for response (read for up to 1 second)
+        time.sleep(0.2)  # Small delay for ESP32 to process
+        response = b''
+        ser.timeout = 0.5
+        while True:
+            chunk = ser.read(1)
+            if not chunk:
+                break
+            response += chunk
+        ser.timeout = 1
+        
+        if response:
+            # Display response as hex
+            response_hex = response.hex(' ').upper()
+            if DEBUG:
+                print(f"Response: {response_hex}")
+            window.label_com_error4.setText(f"Response: {response_hex}")
+        else:
+            window.label_com_error4.setText("No response")
+    
+    except ValueError:
+        window.label_com_error4.setText("Invalid hex format")
+    except Exception as e:
+        window.label_com_error4.setText(f"Error: {str(e)}")
+        if DEBUG:
+            print(f"Error: {e}")
+    
+    window.pushbutton_custom.setEnabled(True)
 
 def find_device():
     window.pushbutton_find_device.setEnabled(False)
