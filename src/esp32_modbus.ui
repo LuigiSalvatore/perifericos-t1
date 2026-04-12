@@ -121,17 +121,10 @@
      <string>Read Custom Command</string>
     </property>
    </widget>
-   <widget class="QLCDNumber" name="lcd_custom">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>310</y>
-      <width>64</width>
-      <height>23</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="lineedit_custom_command">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -189,27 +182,110 @@
    <widget class="QLabel" name="label_device">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>90</y>
-      <width>161</width>
+      <x>450</x>
+      <y>80</y>
+      <width>261</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
      <string>Device not found</string>
     </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
    </widget>
    <widget class="QPushButton" name="pushbutton_find_device">
     <property name="geometry">
      <rect>
-      <x>490</x>
-      <y>120</y>
+      <x>540</x>
+      <y>110</y>
       <width>80</width>
       <height>25</height>
      </rect>
     </property>
     <property name="text">
      <string>Find Device</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_com_error1">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>194</y>
+      <width>131</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_com_error2">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>233</y>
+      <width>131</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_com_error3">
+    <property name="geometry">
+     <rect>
+      <x>410</x>
+      <y>273</y>
+      <width>131</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_com_error4">
+    <property name="geometry">
+     <rect>
+      <x>597</x>
+      <y>314</y>
+      <width>131</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineedit_custom_receive">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>414</x>
+      <y>310</y>
+      <width>181</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>

@@ -7,6 +7,7 @@ import serial
 import time
 
 DEBUG = True
+RETRIES = 5
 
 def start_com():
     window.pushbutton_start_com.setEnabled(False)
@@ -21,8 +22,6 @@ def start_com():
     # Limpa o buffer
     while ser.read():
         pass
-
-    # Inserir algo a mais?
 
     window.progressbar_serial_com.setValue(100)
 
@@ -63,28 +62,76 @@ def stop_com():
     window.pushbutton_custom.setEnabled(False)
 
 def read_temp():
-    ser.write(b'T\n')
-    data = ser.readline().decode().strip()
+    window.pushbutton_read_temp.setEnabled(False)
+    window.label_com_error1.setText("")
+    b_data_receive = False
+
+    data = ""
+    for i in range(RETRIES + 1):
+        ser.write(b'T\n')
+        data = ser.readline().decode().strip()
+
+        if (len(data) > 0):
+            b_data_receive = True
+            break
+
+    if (not b_data_receive):
+        window.label_com_error1.setText("Communication Error")
+        window.pushbutton_read_temp.setEnabled(True)
+        return
 
     if DEBUG:
         print("Data received: " + data)
     
     temp = float(data.split(":")[1])
     window.lcd_temp1.display(temp)
+    window.pushbutton_read_temp.setEnabled(True)
 
 def read_humid():
-    ser.write(b'H\n')
-    data = ser.readline().decode().strip()
+    window.pushbutton_read_humid.setEnabled(False)
+    window.label_com_error2.setText("")
+    b_data_receive = False
+
+    data = ""
+    for i in range(RETRIES + 1):
+        ser.write(b'H\n')
+        data = ser.readline().decode().strip()
+
+        if (len(data) > 0):
+            b_data_receive = True
+            break
+
+    if (not b_data_receive):
+        window.label_com_error2.setText("Communication Error")
+        window.pushbutton_read_humid.setEnabled(True)
+        return
     
     if DEBUG:
         print("Data received: " + data)
 
     hum = int(data.split(":")[1])
     window.progressbar_humid1.setValue(hum)
+    window.pushbutton_read_humid.setEnabled(True)
 
 def read_temp_humid():
-    ser.write(b'th\n')
-    data = ser.readline().decode().strip()
+    window.pushbutton_read_temp_humid.setEnabled(False)
+    window.label_com_error3.setText("")
+    b_data_receive = False
+
+    data = ""
+    for i in range(RETRIES + 1):
+        ser.write(b'th\n')
+        data = ser.readline().decode().strip()
+
+        if (len(data) > 0):
+            b_data_receive = True
+            break
+        ser.write(b'th\n')
+
+    if (not b_data_receive):
+        window.label_com_error3.setText("Communication Error")
+        window.pushbutton_read_temp_humid.setEnabled(True)
+        return
     
     if DEBUG:
         print("Data received: " + data)
@@ -92,8 +139,10 @@ def read_temp_humid():
     t, h = data.split(":")[1].split(",")
     window.lcd_temp2.display(float(t))
     window.progressbar_humid2.setValue(int(h))
+    window.pushbutton_read_temp_humid.setEnabled(True)
 
 def custom_command():
+    window.label_com_error4.setText("")
     # TODO: Fazer verificação se é hexadecimal
     print(f"custom command: {window.lineedit_custom_command.text()}")
 
