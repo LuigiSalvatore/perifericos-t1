@@ -186,6 +186,32 @@
      <number>24</number>
     </property>
    </widget>
+   <widget class="QLabel" name="label_device">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>90</y>
+      <width>161</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Device not found</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushbutton_find_device">
+    <property name="geometry">
+     <rect>
+      <x>490</x>
+      <y>120</y>
+      <width>80</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Find Device</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

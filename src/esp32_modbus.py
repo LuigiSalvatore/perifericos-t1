@@ -94,11 +94,16 @@ def read_temp_humid():
     window.progressbar_humid2.setValue(int(h))
 
 def custom_command():
-    # TODO: Inserir
+    # TODO: Fazer verificação se é hexadecimal
     print(f"custom command: {window.lineedit_custom_command.text()}")
 
-if __name__ == '__main__':
-    # Descobre portas que contenham UART na descrição    
+def find_device():
+    window.pushbutton_find_device.setEnabled(False)
+    window.pushbutton_start_com.setEnabled(False)
+
+    global ser
+
+    device = None 
     for port in serial.tools.list_ports.comports():
         # print(f"{port.device}: {port.description}")
         if ("UART" in port.description):
@@ -107,11 +112,26 @@ if __name__ == '__main__':
             if DEBUG:
                 print("Device " + port.device + " found")
             break
+    
+    if (device == None):
+        window.pushbutton_find_device.setEnabled(True)
+        window.label_device.setText("Device not found")
+    else:
+        window.pushbutton_start_com.setEnabled(True)
+        window.label_device.setText("Device " + device + " found")
+        ser = serial.Serial(device, 9600, timeout=1)
+        print(ser)
+        
 
-    ser = serial.Serial(device, 9600, timeout=1)
+if __name__ == '__main__':
+    # Descobre portas que contenham UART na descrição
 
     app = QtWidgets.QApplication([])
     window = uic.loadUi("src/esp32_modbus.ui")
+
+    ser = None
+
+    find_device()
 
     # Desabilita todos botões com excessão do início de conexão
     window.pushbutton_stop_com.setEnabled(False)
@@ -126,6 +146,7 @@ if __name__ == '__main__':
     window.pushbutton_read_humid.clicked.connect(read_humid)
     window.pushbutton_read_temp_humid.clicked.connect(read_temp_humid)
     window.pushbutton_custom.clicked.connect(custom_command)
+    window.pushbutton_find_device.clicked.connect(find_device)
 
     window.show()
     app.exec_()
