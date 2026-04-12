@@ -247,14 +247,16 @@ void app_main(void)
             }
             else {
                 if(strlen((char *)data) > 4){
+                    uart_write_bytes(UART_PORT0, (char *)data, len);
+
                     // Send Data Process
-                    uint16_t crc_generated = modbus_crc(data, strlen((char*) data));
-                    data[len] = (crc_generated & 0x00FF);
-                    data[len+1] = ((crc_generated & 0xFF00) >> 8);
-                    data[len+2] = '\0';
+                    uint16_t crc_generated = modbus_crc(data, strlen((char*) len));
+                    data[len+1] = (crc_generated & 0x00FF);
+                    data[len] = ((crc_generated & 0xFF00) >> 8);
+
                     gpio_set_level(GPIO_DRIVER_PIN, 1);
                     vTaskDelay(pdMS_TO_TICKS(10));
-                    uart_write_bytes(UART_PORT2, (char *)data, strlen((char *) data));
+                    uart_write_bytes(UART_PORT2, (char *)data, len + 2);
                     uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
                     vTaskDelay(50 / portTICK_PERIOD_MS);
                     
@@ -262,10 +264,8 @@ void app_main(void)
                     if(data[1] == 0x03 || data[1] == 0x04){
                         read_len = read_data(read_buffer, 9);
                         char return_msg[100];
-                        for(int i = 0; i < read_len; i++){
-                            sprintf(return_msg, "%02x ", read_buffer[i]);
-                        }    
-                        sprintf(return_msg, "\n");
+                        
+                        sprintf(return_msg, "%02x %02x %02x %02x\n", read_buffer[0], read_buffer[1], read_buffer[2], read_buffer[3]);
                         uart_write_bytes(UART_PORT0, (char *)return_msg, strlen(return_msg));
                     }
                 }
