@@ -91,7 +91,7 @@ uint16_t modbus_crc(uint8_t *buf, int len)
     return crc;
 }
 
-void app_main(void)
+void main(void)
 {
     uint8_t data[BUF_SIZE];
     uint8_t read_buffer[BUF_SIZE];
@@ -139,15 +139,15 @@ void app_main(void)
 
                 if (read_len == 9)
                 {
-#ifdef DEBUG
-                    for (int i = 0; i < read_len; i++)
-                    {
-                        char byte_str[7];
-                        sprintf(byte_str, "%02X ", read_buffer[i]);
-                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
-                    }
-                    uart_write_bytes(UART_PORT0, "\n", 1);
-#endif
+                    #ifdef DEBUG
+                        for (int i = 0; i < read_len; i++)
+                        {
+                            char byte_str[7];
+                            sprintf(byte_str, "%02X ", read_buffer[i]);
+                            uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
+                        }
+                        uart_write_bytes(UART_PORT0, "\n", 1);
+                    #endif
 
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
@@ -155,9 +155,9 @@ void app_main(void)
 
                     if (crc_expected == crc_received)
                     {
-#ifdef DEBUG
-                        uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
-#endif
+                        #ifdef DEBUG
+                            uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
+                        #endif
 
                         char send_data[50];
                         temp = read_buffer[3] << 8 | read_buffer[4];
@@ -169,12 +169,12 @@ void app_main(void)
                 }
                 else
                 {
-#ifdef DEBUG
-                    uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
-                    char msg[50];
-                    sprintf(msg, "Lenght Read = %d\n", read_len);
-                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
-#endif
+                    #ifdef DEBUG
+                        uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
+                        char msg[50];
+                        sprintf(msg, "Lenght Read = %d\n", read_len);
+                        uart_write_bytes(UART_PORT0, msg, strlen(msg));
+                    #endif
                 }
             }
             else if (strstr((char *)data, "T") != 0)
@@ -185,15 +185,15 @@ void app_main(void)
 
                 if (read_len == 7)
                 {
-#ifdef DEBUG
-                    for (int i = 0; i < read_len; i++)
-                    {
-                        char byte_str[5];
-                        sprintf(byte_str, "%02X ", read_buffer[i]);
-                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
-                    }
-                    uart_write_bytes(UART_PORT0, "\n", 1);
-#endif
+                    #ifdef DEBUG
+                        for (int i = 0; i < read_len; i++)
+                        {
+                            char byte_str[5];
+                            sprintf(byte_str, "%02X ", read_buffer[i]);
+                            uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
+                        }
+                        uart_write_bytes(UART_PORT0, "\n", 1);
+                    #endif
 
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
@@ -201,9 +201,9 @@ void app_main(void)
 
                     if (crc_expected == crc_received)
                     {
-#ifdef DEBUG
-                        uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
-#endif
+                        #ifdef DEBUG
+                            uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
+                        #endif
 
                         char send_data[50];
                         temp = read_buffer[3] << 8 | read_buffer[4];
@@ -214,12 +214,12 @@ void app_main(void)
                 }
                 else
                 {
-#ifdef DEBUG
-                    uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
-                    char msg[50];
-                    sprintf(msg, "Lenght Read = %d\n", read_len);
-                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
-#endif
+                    #ifdef DEBUG
+                        uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
+                        char msg[50];
+                        sprintf(msg, "Lenght Read = %d\n", read_len);
+                        uart_write_bytes(UART_PORT0, msg, strlen(msg));
+                    #endif
                 }
             }
             else if (strstr((char *)data, "H") != 0)
@@ -230,25 +230,24 @@ void app_main(void)
 
                 if (read_len == 7)
                 {
-#ifdef DEBUG
-                    for (int i = 0; i < read_len; i++)
-                    {
-                        char byte_str[5];
-                        sprintf(byte_str, "%02X ", read_buffer[i]);
-                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
-                    }
-                    uart_write_bytes(UART_PORT0, "\n", 1);
-#endif
+                    #ifdef DEBUG
+                        for (int i = 0; i < read_len; i++)
+                        {
+                            char byte_str[5];
+                            sprintf(byte_str, "%02X ", read_buffer[i]);
+                            uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
+                        }
+                        uart_write_bytes(UART_PORT0, "\n", 1);
+                    #endif
 
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
                     crc_received = read_buffer[read_len - 2] | (read_buffer[read_len - 1] << 8);
 
-                    if (crc_expected == crc_received)
-                    {
-#ifdef DEBUG
-                        uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
-#endif
+                    if (crc_expected == crc_received){
+                        #ifdef DEBUG
+                            uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
+                        #endif
 
                         char send_data[50];
                         humid = (read_buffer[3] << 8 | read_buffer[4]) / 10;
@@ -258,12 +257,12 @@ void app_main(void)
                 }
                 else
                 {
-#ifdef DEBUG
-                    uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
-                    char msg[50];
-                    sprintf(msg, "Lenght Read = %d\n", read_len);
-                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
-#endif
+                    #ifdef DEBUG
+                        uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
+                        char msg[50];
+                        sprintf(msg, "Lenght Read = %d\n", read_len);
+                        uart_write_bytes(UART_PORT0, msg, strlen(msg));
+                    #endif
                 }
             }
             else
@@ -271,17 +270,17 @@ void app_main(void)
                 // Custom command - data is already in binary format
                 if (len >= 6)
                 {
-// Send Data Process
-#ifdef DEBUG
-                    uart_write_bytes(UART_PORT0, "Sending custom command: ", strlen("Sending custom command: "));
-                    for (int i = 0; i < len; i++)
-                    {
-                        char byte_str[7];
-                        sprintf(byte_str, "%02X ", data[i]);
-                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
-                    }
-                    uart_write_bytes(UART_PORT0, "\n", 1);
-#endif
+                    // Send Data Process
+                    #ifdef DEBUG
+                        uart_write_bytes(UART_PORT0, "Sending custom command: ", strlen("Sending custom command: "));
+                        for (int i = 0; i < len; i++)
+                        {
+                            char byte_str[7];
+                            sprintf(byte_str, "%02X ", data[i]);
+                            uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
+                        }
+                        uart_write_bytes(UART_PORT0, "\n", 1);
+                    #endif
 
                     // Calculate CRC and append it
                     uint16_t crc_generated = modbus_crc(data, len);
@@ -296,12 +295,12 @@ void app_main(void)
                     uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
                     vTaskDelay(50 / portTICK_PERIOD_MS);
 
-#ifdef DEBUG
-                    uart_write_bytes(UART_PORT0, "CRC added: ", strlen("CRC added: "));
-                    char crc_str[10];
-                    sprintf(crc_str, "%02X %02X\n", cmd_with_crc[len], cmd_with_crc[len + 1]);
-                    uart_write_bytes(UART_PORT0, crc_str, strlen(crc_str));
-#endif
+                    #ifdef DEBUG
+                        uart_write_bytes(UART_PORT0, "CRC added: ", strlen("CRC added: "));
+                        char crc_str[10];
+                        sprintf(crc_str, "%02X %02X\n", cmd_with_crc[len], cmd_with_crc[len + 1]);
+                        uart_write_bytes(UART_PORT0, crc_str, strlen(crc_str));
+                    #endif
 
                     // Receive Data Process (If command is for this purpose - function codes 0x03 or 0x04)
                     if (data[1] == 0x03 || data[1] == 0x04)
@@ -314,9 +313,9 @@ void app_main(void)
                 }
                 else
                 {
-#ifdef DEBUG
-                    uart_write_bytes(UART_PORT0, "Command too short (min 6 bytes)\n", strlen("Command too short (min 6 bytes)\n"));
-#endif
+                    #ifdef DEBUG
+                        uart_write_bytes(UART_PORT0, "Command too short (min 6 bytes)\n", strlen("Command too short (min 6 bytes)\n"));
+                    #endif
                 }
             }
         }
