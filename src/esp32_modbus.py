@@ -5,20 +5,27 @@ from PyQt5 import uic
 import serial
 import time
 
-ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1) # TROCAR O SERIAL PELO QUE A ESP TÀ SENDO MONTADA
+import sys
+import glob
 
-app = QtWidgets.QApplication([])
-window = uic.loadUi("src/esp32_modbus.ui")
-
-window.pushbutton_stop_com.setEnabled(False)
-window.pushbutton_read_temp.setEnabled(False)
-window.pushbutton_read_humid.setEnabled(False)
-window.pushbutton_read_temp_humid.setEnabled(False)
-window.pushbutton_custom.setEnabled(False)
 
 def start_com():
+    # devices = find_serial_ports()
+
+    # ser = serial.Serial(devices[0], 9600, timeout=1)
+
     window.pushbutton_start_com.setEnabled(False)
-    ser.readline().decode().strip() # Clear buffer? só dar read?
+    window.progressbar_serial_com.setValue(30)
+
+    # Inserir conexão à porta
+
+    window.progressbar_serial_com.setValue(60)
+
+    data = ser.readline().decode().strip() # Clear buffer? só dar read?
+    print(data) # debug
+
+    # Inserir algo a mais?
+
     window.progressbar_serial_com.setValue(100)
     print("start")
 
@@ -30,7 +37,12 @@ def start_com():
 
 def stop_com():
     window.pushbutton_stop_com.setEnabled(False)
-    window.progressbar_serial_com.setValue(50)
+
+    window.progressbar_serial_com.setValue(60)
+
+    ser = None
+
+    window.progressbar_serial_com.setValue(0)
     print("stop")
 
     window.pushbutton_start_com.setEnabled(True)
@@ -64,12 +76,47 @@ def read_temp_humid():
 def custom_command():
     print(f"custom command: {window.lineedit_custom_command.text()}")
 
-window.pushbutton_start_com.clicked.connect(start_com)
-window.pushbutton_stop_com.clicked.connect(stop_com)
-window.pushbutton_read_temp.clicked.connect(read_temp)
-window.pushbutton_read_humid.clicked.connect(read_humid)
-window.pushbutton_read_temp_humid.clicked.connect(read_temp_humid)
-window.pushbutton_custom.clicked.connect(custom_command)
+def find_serial_ports():    
+    if sys.platform.startswith('win'):
+        ports = ['COM%s' % (i + 1) for i in range(256)]
+    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        # this excludes your current terminal "/dev/tty"
+        ports = glob.glob('/dev/tty[A-Za-z]*')
+    elif sys.platform.startswith('darwin'):
+        ports = glob.glob('/dev/tty.*')
+    else:
+        raise EnvironmentError('Unsupported platform')
 
-window.show()
-app.exec_()
+    result = []
+    for port in ports:
+        try:
+            s = serial.Serial(port)
+            s.close()
+            result.append(port)
+        except (OSError, serial.SerialException):
+            pass
+    return result
+
+if __name__ == '__main__':
+    device = '/dev/ttyUSB0' # TROCAR O SERIAL PELO QUE A ESP TÀ SENDO MONTADA
+    ser = serial.Serial(device, 9600, timeout=1)
+
+    app = QtWidgets.QApplication([])
+    window = uic.loadUi("src/esp32_modbus.ui")
+
+    # Desabilita todos botões com excessão do início de conexão
+    window.pushbutton_stop_com.setEnabled(False)
+    window.pushbutton_read_temp.setEnabled(False)
+    window.pushbutton_read_humid.setEnabled(False)
+    window.pushbutton_read_temp_humid.setEnabled(False)
+    window.pushbutton_custom.setEnabled(False)
+
+    window.pushbutton_start_com.clicked.connect(start_com)
+    window.pushbutton_stop_com.clicked.connect(stop_com)
+    window.pushbutton_read_temp.clicked.connect(read_temp)
+    window.pushbutton_read_humid.clicked.connect(read_humid)
+    window.pushbutton_read_temp_humid.clicked.connect(read_temp_humid)
+    window.pushbutton_custom.clicked.connect(custom_command)
+
+    window.show()
+    app.exec_()
