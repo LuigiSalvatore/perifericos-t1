@@ -90,7 +90,7 @@ void app_main(void)
         {
             data[len] = '\0';
 
-            if(strstr((char *)data, "TH") != 0)
+            if(strstr((char *)data, "th") != 0)
             {
                 send_temp_humidity_com();
                 read_len = read_data(read_buffer);
@@ -105,6 +105,9 @@ void app_main(void)
                     }
                 }else{
                     uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
+                    char msg[50];
+                    sprintf(msg, "Lenght Read = %d\n", read_len);
+                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
                 }
             }
             else if(strstr((char *)data, "T") != 0)
@@ -122,6 +125,9 @@ void app_main(void)
                     }
                 }else{
                     uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
+                    char msg[50];
+                    sprintf(msg, "Lenght Read = %d\n", read_len);
+                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
                 }
             } 
             else if(strstr((char *)data, "H") != 0)
@@ -139,6 +145,9 @@ void app_main(void)
                     }
                 }else{
                     uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
+                    char msg[50];
+                    sprintf(msg, "Lenght Read = %d\n", read_len);
+                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
                 }
             }
         }
