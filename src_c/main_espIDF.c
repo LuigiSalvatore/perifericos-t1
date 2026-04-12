@@ -76,6 +76,7 @@ void app_main(void)
 
     gpio_reset_pin(GPIO_DRIVER_PIN);
     gpio_set_direction(GPIO_DRIVER_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_level(GPIO_DRIVER_PIN, 0);
 
     int read_len = 0;
     uint16_t crc_received = 0;
