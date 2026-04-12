@@ -8,8 +8,8 @@
 #define UART_PORT0 UART_NUM_0
 #define UART_PORT2 UART_NUM_2
 
-#define RX2 16
-#define TX2 17
+#define RXD2 16
+#define TXD2 17
 
 #define GPIO_DRIVER_PIN 4
 #define BUF_SIZE 1024
@@ -47,10 +47,22 @@ void send_temp_humidity_com(void){
     uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
 }
 
-int read_data(uint8_t * read_buf){
+int read_data(uint8_t * read_buf, int expected_len){
     gpio_set_level(GPIO_DRIVER_PIN, 0);
-    int len = uart_read_bytes(UART_PORT2, read_buf, BUF_SIZE - 1, 100 / portTICK_PERIOD_MS);
-    return len;
+    int total = 0;
+    int timeout = 200; // ms
+    int elapsed = 0;
+    while (total < expected_len && elapsed < timeout) {
+        int len = uart_read_bytes(UART_PORT2, read_buf + total, expected_len - total, pdMS_TO_TICKS(20));
+
+        if (len > 0) {
+            total += len;
+        }
+
+        elapsed += 20;
+    }
+
+    return total;
 }
 
 // Calculates the CRC
@@ -109,7 +121,7 @@ void app_main(void)
             {
                 send_temp_humidity_com();
                 vTaskDelay(50 / portTICK_PERIOD_MS);
-                read_len = read_data(read_buffer);
+                read_len = read_data(read_buffer, 9);
 
                 if(read_len == 9){
                     for(int i = 0; i < read_len; i++){
@@ -121,7 +133,7 @@ void app_main(void)
                     
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
-                    crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
+                  crc_received = read_buffer[read_len - 2] | (read_buffer[read_len - 1] << 8);
 
                     if(crc_expected == crc_received){
                         uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
@@ -137,7 +149,7 @@ void app_main(void)
             {
                 send_temp_com();
                 vTaskDelay(50 / portTICK_PERIOD_MS);
-                read_len = read_data(read_buffer);
+                read_len = read_data(read_buffer, 7);
 
                 if(read_len == 7){
                     for(int i = 0; i < read_len; i++){
@@ -149,7 +161,7 @@ void app_main(void)
 
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
-                    crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
+                   crc_received = read_buffer[read_len - 2] | (read_buffer[read_len - 1] << 8);     
 
                     if(crc_expected == crc_received){
                         uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
@@ -165,7 +177,7 @@ void app_main(void)
             {
                     send_humidity_com();
                     vTaskDelay(50 / portTICK_PERIOD_MS);
-                    read_len = read_data(read_buffer);
+                    read_len = read_data(read_buffer, 7);
 
                 if(read_len == 7){
                     for(int i = 0; i < read_len; i++){
@@ -177,7 +189,7 @@ void app_main(void)
 
                     // Verifies CRC and Check if everything is correct
                     crc_expected = modbus_crc(read_buffer, read_len - 2);
-                    crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
+                   crc_received = read_buffer[read_len - 2] | (read_buffer[read_len - 1] << 8);
 
                     if(crc_expected == crc_received){
                         uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
