@@ -8,59 +8,76 @@
 #define UART_PORT0 UART_NUM_0
 #define UART_PORT2 UART_NUM_2
 
+#define TXD2 17
+#define RXD2 16
+
 #define GPIO_DRIVER_PIN 4
 #define BUF_SIZE 1024
 
-void send_temp_com(void){
-    uint8_t temp_com[8] = {0x01, 0x04, 0x00, 0x01,
-                           0x00, 0x01, 0x60, 0x61}; //Last two for CRC
+#define TIMEOUT_MS 500
 
-    gpio_set_level(GPIO_DRIVER_PIN, 1);
-    uart_write_bytes(UART_PORT2, (char *)temp_com, 8);
-    uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
-}
-
-void send_humidity_com(void){
-    uint8_t humidity_com[8] = {0x01, 0x04, 0x00, 0x02,
-                               0x00, 0x01, 0x90, 0x0A}; //Last two for CRC
-    
-    gpio_set_level(GPIO_DRIVER_PIN, 1);
-    uart_write_bytes(UART_PORT2, (char *)humidity_com, 8);
-    uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
-}
-
-void send_temp_humidity_com(void){
-    uint8_t temp_humid_com[8] = {0x01, 0x04, 0x00, 0x01,
-                                 0x00, 0x02, 0x20, 0x0B}; //Last two for CRC
-
-    gpio_set_level(GPIO_DRIVER_PIN, 1);
-    uart_write_bytes(UART_PORT2, (char *)temp_humid_com, 8);
-    uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
-}
-
-int read_data(uint8_t * read_buf){
-    gpio_set_level(GPIO_DRIVER_PIN, 0);
-    int len = uart_read_bytes(UART_PORT2, read_buf, BUF_SIZE - 1, 100 / portTICK_PERIOD_MS);
-    return len;
-}
-
-// Calculates the CRC
+// ================= CRC =================
 uint16_t modbus_crc(uint8_t *buf, int len){
     uint16_t crc = 0xFFFF;
-    for (int pos = 0; pos < len; pos++)
-    {
+
+    for (int pos = 0; pos < len; pos++){
         crc ^= buf[pos];
-        for (int i = 0; i < 8; i++)
-        {
-            if (crc & 0x0001) crc = (crc >> 1) ^ 0xA001;
-            else crc >>= 1;
+        for (int i = 0; i < 8; i++){
+            if (crc & 0x0001)
+                crc = (crc >> 1) ^ 0xA001;
+            else
+                crc >>= 1;
         }
     }
     return crc;
 }
 
-void app_main(void)
-{
+// ================= DEBUG =================
+void print_hex(uint8_t *buf, int len){
+    char byte_str[5];
+    for(int i = 0; i < len; i++){
+        sprintf(byte_str, "%02X ", buf[i]);
+        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
+    }
+    uart_write_bytes(UART_PORT0, "\n", 1);
+}
+
+// ================= RS485 SEND =================
+void rs485_send(uint8_t *data, int len){
+
+    gpio_set_level(GPIO_DRIVER_PIN, 1); // TX enable
+    vTaskDelay(pdMS_TO_TICKS(10));
+
+    uart_write_bytes(UART_PORT2, (char *)data, len);
+    uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
+
+    gpio_set_level(GPIO_DRIVER_PIN, 0); // RX enable
+}
+
+// ================= RS485 READ =================
+int rs485_read(uint8_t *buf){
+    int total = 0;
+    int elapsed = 0;
+
+    while (elapsed < TIMEOUT_MS){
+        int len = uart_read_bytes(UART_PORT2,
+                                  buf + total,
+                                  BUF_SIZE - total,
+                                  pdMS_TO_TICKS(10));
+
+        if(len > 0){
+            total += len;
+        }
+
+        elapsed += 10;
+    }
+
+    return total;
+}
+
+// ================= MAIN =================
+void app_main(void){
+
     uint8_t data[BUF_SIZE];
     uint8_t read_buffer[BUF_SIZE];
 
@@ -72,114 +89,127 @@ void app_main(void)
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
     };
 
+    // UART0 (debug)
     uart_driver_install(UART_PORT0, BUF_SIZE, 0, 0, NULL, 0);
     uart_param_config(UART_PORT0, &uart_config);
 
+    // UART2 (RS485)
     uart_driver_install(UART_PORT2, BUF_SIZE, 0, 0, NULL, 0);
     uart_param_config(UART_PORT2, &uart_config);
 
+    uart_set_pin(UART_PORT2, TXD2, RXD2,
+                 UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+
+    // GPIO RS485
     gpio_reset_pin(GPIO_DRIVER_PIN);
     gpio_set_direction(GPIO_DRIVER_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_DRIVER_PIN, 0);
 
-    int read_len = 0;
-    uint16_t crc_received = 0;
-    uint16_t crc_expected = 0;
+    // ====== Frame base ======
+    uint8_t frame[8];
 
-    while (1)
-    {
-        int len = uart_read_bytes(UART_PORT0, data, BUF_SIZE - 1, 100 / portTICK_PERIOD_MS);
+    while (1){
 
-        if (len >= 0)
-        {
+        int len = uart_read_bytes(UART_PORT0,
+                                 data,
+                                 BUF_SIZE - 1,
+                                 pdMS_TO_TICKS(100));
+
+        if(len > 0){
+
             data[len] = '\0';
 
-            if(strstr((char *)data, "th") != 0)
-            {
-                send_temp_humidity_com();
-                vTaskDelay(50 / portTICK_PERIOD_MS);
-                read_len = read_data(read_buffer);
+            // ================= TEMPERATURA =================
+            if(strstr((char *)data, "T") != NULL){
 
-                if(read_len == 9){
-                    for(int i = 0; i < read_len; i++){
-                        char byte_str[7];
-                        sprintf(byte_str, "%02X ", read_buffer[i]);
-                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
-                    }
-                    uart_write_bytes(UART_PORT0, "\n", 1);
-                    
-                    // Verifies CRC and Check if everything is correct
-                    crc_expected = modbus_crc(read_buffer, read_len - 2);
-                    crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
+                uint8_t msg[6] = {0x01, 0x04, 0x00, 0x01, 0x00, 0x01};
 
-                    if(crc_expected == crc_received){
-                        uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
+                uint16_t crc = modbus_crc(msg, 6);
+
+                frame[0] = msg[0];
+                frame[1] = msg[1];
+                frame[2] = msg[2];
+                frame[3] = msg[3];
+                frame[4] = msg[4];
+                frame[5] = msg[5];
+                frame[6] = crc & 0xFF;          // CRC L
+                frame[7] = (crc >> 8) & 0xFF;   // CRC H
+
+                uart_write_bytes(UART_PORT0, "TX: ", 4);
+                print_hex(frame, 8);
+
+                rs485_send(frame, 8);
+
+                int read_len = rs485_read(read_buffer);
+
+                uart_write_bytes(UART_PORT0, "RX: ", 4);
+                print_hex(read_buffer, read_len);
+
+                if(read_len >= 5){
+
+                    uint16_t crc_calc = modbus_crc(read_buffer, read_len - 2);
+                    uint16_t crc_recv = read_buffer[read_len - 2] |
+                                        (read_buffer[read_len - 1] << 8);
+
+                    if(crc_calc == crc_recv){
+                        uart_write_bytes(UART_PORT0, "CRC OK\n", 7);
+
+                        uint16_t value = (read_buffer[3] << 8) | read_buffer[4];
+
+                        char msg_out[50];
+                        sprintf(msg_out, "Value: %d\n", value);
+                        uart_write_bytes(UART_PORT0, msg_out, strlen(msg_out));
+                    } else {
+                        uart_write_bytes(UART_PORT0, "CRC ERROR\n", 10);
                     }
-                }else{
-                    uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
-                    char msg[50];
-                    sprintf(msg, "Lenght Read = %d\n", read_len);
-                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
                 }
             }
-            else if(strstr((char *)data, "T") != 0)
-            {
-                send_temp_com();
-                vTaskDelay(50 / portTICK_PERIOD_MS);
-                read_len = read_data(read_buffer);
 
-                if(read_len == 7){
-                    for(int i = 0; i < read_len; i++){
-                        char byte_str[5];
-                        sprintf(byte_str, "%02X ", read_buffer[i]);
-                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
-                    }
-                    uart_write_bytes(UART_PORT0, "\n", 1);
+            // ================= HUMIDADE =================
+            else if(strstr((char *)data, "H") != NULL){
 
-                    // Verifies CRC and Check if everything is correct
-                    crc_expected = modbus_crc(read_buffer, read_len - 2);
-                    crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
+                uint8_t msg[6] = {0x01, 0x04, 0x00, 0x02, 0x00, 0x01};
 
-                    if(crc_expected == crc_received){
-                        uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
-                    }
-                }else{
-                    uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
-                    char msg[50];
-                    sprintf(msg, "Lenght Read = %d\n", read_len);
-                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
-                }
-            } 
-            else if(strstr((char *)data, "H") != 0)
-            {
-                    send_humidity_com();
-                    vTaskDelay(50 / portTICK_PERIOD_MS);
-                    read_len = read_data(read_buffer);
+                uint16_t crc = modbus_crc(msg, 6);
 
-                if(read_len == 7){
-                    for(int i = 0; i < read_len; i++){
-                        char byte_str[5];
-                        sprintf(byte_str, "%02X ", read_buffer[i]);
-                        uart_write_bytes(UART_PORT0, byte_str, strlen(byte_str));
-                    }
-                    uart_write_bytes(UART_PORT0, "\n", 1);
+                for(int i = 0; i < 6; i++) frame[i] = msg[i];
+                frame[6] = crc & 0xFF;
+                frame[7] = (crc >> 8) & 0xFF;
 
-                    // Verifies CRC and Check if everything is correct
-                    crc_expected = modbus_crc(read_buffer, read_len - 2);
-                    crc_received = (read_buffer[read_len - 2] << 8) | (read_buffer[read_len - 1]);
+                uart_write_bytes(UART_PORT0, "TX: ", 4);
+                print_hex(frame, 8);
 
-                    if(crc_expected == crc_received){
-                        uart_write_bytes(UART_PORT0, "! CRC Okay !\n", strlen("! CRC Okay !\n"));
-                    }
-                }else{
-                    uart_write_bytes(UART_PORT0, "Length Error !\n", strlen("Length Error !\n"));
-                    char msg[50];
-                    sprintf(msg, "Lenght Read = %d\n", read_len);
-                    uart_write_bytes(UART_PORT0, msg, strlen(msg));
-                }
+                rs485_send(frame, 8);
+
+                int read_len = rs485_read(read_buffer);
+
+                uart_write_bytes(UART_PORT0, "RX: ", 4);
+                print_hex(read_buffer, read_len);
+            }
+
+            // ================= TEMP + HUM =================
+            else if(strstr((char *)data, "th") != NULL){
+
+                uint8_t msg[6] = {0x01, 0x04, 0x00, 0x01, 0x00, 0x02};
+
+                uint16_t crc = modbus_crc(msg, 6);
+
+                for(int i = 0; i < 6; i++) frame[i] = msg[i];
+                frame[6] = crc & 0xFF;
+                frame[7] = (crc >> 8) & 0xFF;
+
+                uart_write_bytes(UART_PORT0, "TX: ", 4);
+                print_hex(frame, 8);
+
+                rs485_send(frame, 8);
+
+                int read_len = rs485_read(read_buffer);
+
+                uart_write_bytes(UART_PORT0, "RX: ", 4);
+                print_hex(read_buffer, read_len);
             }
         }
 
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
