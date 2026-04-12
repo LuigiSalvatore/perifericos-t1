@@ -107,6 +107,8 @@ void app_main(void)
     gpio_set_direction(GPIO_DRIVER_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(GPIO_DRIVER_PIN, 0);
 
+    uart_write_bytes(UART_PORT0, "[Start Code]\n", strlen("[Start Code]\n"));
+
     int read_len = 0;
     uint16_t crc_received = 0;
     uint16_t crc_expected = 0;
@@ -244,15 +246,15 @@ void app_main(void)
                 }
             }
             else {
-                if(strlen(data) > 4){
+                if(strlen((char *)data) > 4){
                     // Send Data Process
-                    uint16_t crc_generated = modbus_crc(data, strlen(data));
+                    uint16_t crc_generated = modbus_crc(data, strlen((char*) data));
                     data[len] = (crc_generated & 0x00FF);
                     data[len+1] = ((crc_generated & 0xFF00) >> 8);
                     data[len+2] = '\0';
                     gpio_set_level(GPIO_DRIVER_PIN, 1);
                     vTaskDelay(pdMS_TO_TICKS(10));
-                    uart_write_bytes(UART_PORT2, (char *)data, strlen(data));
+                    uart_write_bytes(UART_PORT2, (char *)data, strlen((char *) data));
                     uart_wait_tx_done(UART_PORT2, pdMS_TO_TICKS(100));
                     vTaskDelay(50 / portTICK_PERIOD_MS);
                     
