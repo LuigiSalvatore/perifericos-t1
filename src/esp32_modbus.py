@@ -20,7 +20,8 @@ def start_com():
     window.progressbar_serial_com.setValue(60)
 
     # Limpa o buffer
-    while ser.read():
+    ser.write(b'T\n')
+    while (ser.readline()):
         pass
 
     window.progressbar_serial_com.setValue(100)
@@ -34,6 +35,7 @@ def start_com():
     window.pushbutton_read_humid.setEnabled(True)
     window.pushbutton_read_temp_humid.setEnabled(True)
     window.pushbutton_custom.setEnabled(True)
+    window.lineedit_custom_command.setEnabled(True)
 
 def stop_com():
     window.pushbutton_stop_com.setEnabled(False)
@@ -60,6 +62,7 @@ def stop_com():
     window.pushbutton_read_humid.setEnabled(False)
     window.pushbutton_read_temp_humid.setEnabled(False)
     window.pushbutton_custom.setEnabled(False)
+    window.lineedit_custom_command.setEnabled(False)
 
 def read_temp():
     window.pushbutton_read_temp.setEnabled(False)
@@ -143,14 +146,14 @@ def read_temp_humid():
 
 def custom_command():
     window.pushbutton_custom.setEnabled(False)
-    window.label_com_error4.setText("")
+    window.lineedit_custom_receive.setText("")    
     
     try:
         # Get hex string from textbox (e.g., "01 04 00 01 00 01")
         hex_string = window.lineedit_custom_command.text().strip()
         
         if not hex_string:
-            window.label_com_error4.setText("Enter hex values")
+            window.lineedit_custom_receive.setText("Enter hex values")
             window.pushbutton_custom.setEnabled(True)
             return
         
@@ -159,7 +162,7 @@ def custom_command():
         hex_clean = hex_string.replace(" ", "").replace(",", "")
         
         if len(hex_clean) % 2 != 0:
-            window.label_com_error4.setText("Invalid hex format")
+            window.lineedit_custom_receive.setText("Invalid hex format")
             window.pushbutton_custom.setEnabled(True)
             return
         
@@ -190,14 +193,14 @@ def custom_command():
             if DEBUG:
                 print(f"Response (hex): {response_hex}")
                 print(f"Response (raw): {response}")
-            window.label_com_error4.setText(f"Response: {response_hex}")
+            window.lineedit_custom_receive.setText(response_hex)
         else:
-            window.label_com_error4.setText("No response")
+            window.lineedit_custom_receive.setText("No response")
     
     except ValueError:
-        window.label_com_error4.setText("Invalid hex format")
+        window.lineedit_custom_receive.setText("Invalid hex format")
     except Exception as e:
-        window.label_com_error4.setText(f"Error: {str(e)}")
+        window.lineedit_custom_receive.setText(f"Error: {str(e)}")
         if DEBUG:
             print(f"Error: {e}")
     
@@ -245,6 +248,7 @@ if __name__ == '__main__':
     window.pushbutton_read_humid.setEnabled(False)
     window.pushbutton_read_temp_humid.setEnabled(False)
     window.pushbutton_custom.setEnabled(False)
+    window.lineedit_custom_command.setEnabled(False)
 
     window.pushbutton_start_com.clicked.connect(start_com)
     window.pushbutton_stop_com.clicked.connect(stop_com)
