@@ -20,9 +20,7 @@ def start_com():
     window.progressbar_serial_com.setValue(60)
 
     # Limpa o buffer
-    ser.write(b'T\n')
-    while (ser.readline()):
-        pass
+    ser.reset_input_buffer()
 
     window.progressbar_serial_com.setValue(100)
 
@@ -149,7 +147,7 @@ def custom_command():
     window.lineedit_custom_receive.setText("")    
     
     try:
-        # Get hex string from textbox (e.g., "01 04 00 01 00 01")
+        # Recebe o valor hexadecimal do campo de texto
         hex_string = window.lineedit_custom_command.text().strip()
         
         if not hex_string:
@@ -157,27 +155,27 @@ def custom_command():
             window.pushbutton_custom.setEnabled(True)
             return
         
-        # Parse hex string and convert to bytes
-        # Remove spaces and convert pairs of hex digits to bytes
+        # Parsing da string hexadecimal, remoção de espaços
         hex_clean = hex_string.replace(" ", "").replace(",", "")
         
+        # Identifica se formato hexadecimal é válido
         if len(hex_clean) % 2 != 0:
             window.lineedit_custom_receive.setText("Invalid hex format")
             window.pushbutton_custom.setEnabled(True)
             return
         
-        # Convert hex string to bytes
+        # Converte string hexadecimal para bytes
         byte_data = bytes.fromhex(hex_clean)
         
         if DEBUG:
             print(f"Sending custom command: {hex_string}")
             print(f"As bytes: {byte_data.hex(' ')}")
         
-        # Send the raw bytes
+        # Envio para a ESP32
         ser.write(byte_data)
         
-        # Wait for response (read for up to 1 second)
-        time.sleep(0.2)  # Small delay for ESP32 to process
+        # Espera pela resposta com um pequeno delay
+        time.sleep(0.2)
         response = b''
         ser.timeout = 0.5
         while True:
@@ -187,8 +185,8 @@ def custom_command():
             response += chunk
         ser.timeout = 1
         
+        # Se recebeu, printa a resposta no campo de texto não-editável
         if response:
-            # Display response as hex
             response_hex = ' '.join(f'{b:02X}' for b in response)
             if DEBUG:
                 print(f"Response (hex): {response_hex}")
@@ -233,13 +231,12 @@ def find_device():
         
 
 if __name__ == '__main__':
-    # Descobre portas que contenham UART na descrição
-
     app = QtWidgets.QApplication([])
     window = uic.loadUi("src/esp32_modbus.ui")
 
     ser = None
 
+    # Descobre portas que contenham UART na descrição
     find_device()
 
     # Desabilita todos botões com excessão do início de conexão
