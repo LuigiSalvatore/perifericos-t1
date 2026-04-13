@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>669</width>
+    <height>426</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,8 +65,17 @@
       <height>23</height>
      </rect>
     </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
+    <property name="lineWidth">
+     <number>1</number>
+    </property>
+    <property name="digitCount">
+     <number>5</number>
+    </property>
     <property name="intValue" stdset="0">
-     <number>22</number>
+     <number>0</number>
     </property>
    </widget>
    <widget class="QPushButton" name="pushbutton_read_humid">
@@ -104,6 +113,9 @@
       <height>23</height>
      </rect>
     </property>
+    <property name="digitCount">
+     <number>5</number>
+    </property>
     <property name="value" stdset="0">
      <double>0.000000000000000</double>
     </property>
@@ -112,7 +124,7 @@
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>310</y>
+      <y>346</y>
       <width>181</width>
       <height>25</height>
      </rect>
@@ -128,13 +140,16 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>310</y>
+      <y>346</y>
       <width>181</width>
       <height>25</height>
      </rect>
     </property>
+    <property name="inputMask">
+     <string>HH HH HH HH HH HH</string>
+    </property>
     <property name="text">
-     <string/>
+     <string>00 00 00 00 00 00</string>
     </property>
    </widget>
    <widget class="QProgressBar" name="progressbar_serial_com">
@@ -163,7 +178,7 @@
      </rect>
     </property>
     <property name="value">
-     <number>24</number>
+     <number>0</number>
     </property>
    </widget>
    <widget class="QProgressBar" name="progressbar_humid2">
@@ -176,14 +191,14 @@
      </rect>
     </property>
     <property name="value">
-     <number>24</number>
+     <number>0</number>
     </property>
    </widget>
    <widget class="QLabel" name="label_device">
     <property name="geometry">
      <rect>
-      <x>450</x>
-      <y>80</y>
+      <x>390</x>
+      <y>40</y>
       <width>261</width>
       <height>17</height>
      </rect>
@@ -198,8 +213,8 @@
    <widget class="QPushButton" name="pushbutton_find_device">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>110</y>
+      <x>480</x>
+      <y>70</y>
       <width>80</width>
       <height>25</height>
      </rect>
@@ -256,22 +271,6 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="label_com_error4">
-    <property name="geometry">
-     <rect>
-      <x>597</x>
-      <y>314</y>
-      <width>131</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="lineedit_custom_receive">
     <property name="enabled">
      <bool>false</bool>
@@ -279,7 +278,7 @@
     <property name="geometry">
      <rect>
       <x>414</x>
-      <y>310</y>
+      <y>346</y>
       <width>181</width>
       <height>25</height>
      </rect>
@@ -288,13 +287,29 @@
      <string/>
     </property>
    </widget>
+   <widget class="QLabel" name="label_com_custom_helper">
+    <property name="geometry">
+     <rect>
+      <x>18</x>
+      <y>320</y>
+      <width>271</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Insert Command in Hexadecimal (withjout CRC)</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>669</width>
      <height>22</height>
     </rect>
    </property>
