@@ -297,7 +297,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Insert Command in Hexadecimal (withjout CRC)</string>
+     <string>Insert Command in Hexadecimal (without CRC)</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
